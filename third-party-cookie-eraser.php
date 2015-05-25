@@ -3,7 +3,7 @@
 	Plugin Name: Third Party Cookie Eraser
 	Plugin URI: http://andreapernici.com/wordpress/third-party-cookie-eraser/
 	Description: The Cookie Law is one of the most stupid law in the world. Maybe made by someone, who doesn't really understand how the web works. This plugin is a drastic solution to lock all the third party contents inside posts and pages not possible using the editor or for website with lot's of authors. You can use the plugin in conjunction with any kind of plugin you prefer for the Cookie Consent. You only need to setup your cookie values.
-	Version: 1.0.0
+	Version: 1.0.1
 	Author: Andrea Pernici
 	Author URI: http://www.andreapernici.com/
 	
@@ -25,7 +25,7 @@
 
 	*/
 
-define( 'THIRDPARTYCOOKIEERASER_VERSION', '1.0.0' );
+define( 'THIRDPARTYCOOKIEERASER_VERSION', '1.0.1' );
 
 $pluginurl = plugin_dir_url(__FILE__);
 if ( preg_match( '/^https/', $pluginurl ) && !preg_match( '/^https/', get_bloginfo('url') ) )
@@ -56,7 +56,28 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 			$options_cookie_value = str_replace("'","",get_option( 'third_party_cookie_eraser_cookie_value' ));
 			$options_lang = get_option( 'third_party_cookie_eraser_lang' );
 			
-			if ($_COOKIE[$options_cookie_name] != $options_cookie_value) add_filter("the_content", array("AndreaThirdPartyCookieEraser","AutoErase"));
+			
+			if ($_COOKIE[$options_cookie_name] != $options_cookie_value) {
+				add_filter("the_content", array("AndreaThirdPartyCookieEraser","AutoErase"));
+				
+				add_filter('widget_display_callback', function($instance, $widget, $args){
+					    $fnFixArray = function($v) use (&$fnFixArray){
+						if(is_array($v) or is_object($v)){
+						    foreach($v as $k1=>&$v1){
+							$v1 = $fnFixArray($v1);
+						    }
+						    return $v;
+						}
+
+						if(!is_string($v) or empty($v)) return $v;
+						
+						$valore = '<div style="padding:10px;margin-bottom: 18px;color: #b94a48;background-color: #f2dede;border: 1px solid #eed3d7; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);-webkit-border-radius: 4px;-moz-border-radius: 4px;border-radius: 4px;">'.stripslashes(get_option( 'third_party_cookie_eraser_lang' )).'</div>';
+						
+						return preg_replace('#<iframe.*?\/iframe>|<embed.*?>|<script.*?\/script>#is', $valore , $v);  
+					    };
+					    return $fnFixArray($instance);
+					}, 11, 3); 
+			}
 			
 			
 		}
@@ -64,8 +85,37 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 		function AutoErase($content) {
 			$options_lang = stripslashes(get_option( 'third_party_cookie_eraser_lang' ));
 			$valore = '<div style="padding:10px;margin-bottom: 18px;color: #b94a48;background-color: #f2dede;border: 1px solid #eed3d7; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);-webkit-border-radius: 4px;-moz-border-radius: 4px;border-radius: 4px;">'.$options_lang.'</div>';
+			
 			return preg_replace('#<iframe.*?\/iframe>|<embed.*?>|<script.*?\/script>#is', $valore , $content);
+			
+			
 		}
+		
+		function WidgetErase(){
+			// Hook into 'widget_display_callback' filter
+			// It allows altering a Widget properties right before it outputs in sidebar
+			add_filter('widget_display_callback', function($instance, $widget, $args){
+			    // Recursive functions that applies replacements in all string elements of $instance
+			    $fnFixArray = function($v) use (&$fnFixArray){
+				// Dig deeper if this is an array or object
+				if(is_array($v) or is_object($v)){
+				    // Use pointer here for property to satisfy both array/object in one
+				    // Otherwise for arrays we need $v[$k1] and $v->{$k1} for objects
+				    foreach($v as $k1=>&$v1){
+					// Go recursive on elements / properties
+					$v1 = $fnFixArray(v1);
+				    }
+				    return $v;
+				}
+				// Don't alter non-strings or empty ones
+				if(!is_string($v) or empty($v)) return $v;
+				// We found a string, replace stuff in it and return the altered value
+				preg_replace('#<iframe.*?\/iframe>|<embed.*?>|<script.*?\/script>#is', $valore , $v);  
+			    };
+			    return $fnFixArray($instance);
+			}, 11, 3); // We need 3 arguments and a below normal priority
+		}
+		
 		
 		function SetEraseAdminConfiguration() {
 			add_action('admin_menu', array("AndreaThirdPartyCookieEraser",'ThirdPartyCookieEraserMenu'));

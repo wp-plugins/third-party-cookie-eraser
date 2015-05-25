@@ -4,9 +4,9 @@ Donate link: http://www.andreapernici.com/donazioni/
 Tags: cookie law, cookie, third party script, third party cookie
 Requires at least: 2.6
 Tested up to: 4.2.2
-stable tag: 1.0.0
+stable tag: 1.0.1
 
-Remove all the occurence of third party embed inside posts and pages until consent.
+Remove all the occurence of third party embed inside posts, pages and widgets until consent.
 
 == Description ==
 
@@ -20,6 +20,10 @@ More info:
 * Check out the other [Wordpress plugins](http://www.andreapernici.com/wordpress/) by the same author, and follow him on the: [SEO Blog](http://seoblog.giorgiotave.it/).
 
 **Changelog**
+
+= 1.0.1 =
+* Added widgets support
+
 
 = 1.0.0 =
 * Release
