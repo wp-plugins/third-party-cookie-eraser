@@ -3,7 +3,7 @@
 	Plugin Name: Third Party Cookie Eraser
 	Plugin URI: http://andreapernici.com/wordpress/third-party-cookie-eraser/
 	Description: The Cookie Law is one of the most stupid law in the world. Maybe made by someone, who doesn't really understand how the web works. This plugin is a drastic solution to lock all the third party contents inside posts and pages not possible using the editor or for website with lot's of authors. You can use the plugin in conjunction with any kind of plugin you prefer for the Cookie Consent. You only need to setup your cookie values.
-	Version: 1.0.1
+	Version: 1.0.2
 	Author: Andrea Pernici
 	Author URI: http://www.andreapernici.com/
 	
@@ -25,7 +25,7 @@
 
 	*/
 
-define( 'THIRDPARTYCOOKIEERASER_VERSION', '1.0.1' );
+define( 'THIRDPARTYCOOKIEERASER_VERSION', '1.0.2' );
 
 $pluginurl = plugin_dir_url(__FILE__);
 if ( preg_match( '/^https/', $pluginurl ) && !preg_match( '/^https/', get_bloginfo('url') ) )
@@ -49,7 +49,7 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 		/**
 		 * Enabled the AndreaThirdPartyCookieEraser plugin with registering all required hooks
 		 */
-		function Enable() {
+		public static function Enable() {
 			add_action('admin_menu', array("AndreaThirdPartyCookieEraser",'ThirdPartyCookieEraserMenu'));
 			//add_action("wp_insert_post",array("AndreaFacebookSend","SetFacebookSendCode"));
 			$options_cookie_name = get_option( 'third_party_cookie_eraser_cookie_name' );
@@ -82,7 +82,7 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 			
 		}
 		
-		function AutoErase($content) {
+		public static function AutoErase($content) {
 			$options_lang = stripslashes(get_option( 'third_party_cookie_eraser_lang' ));
 			$valore = '<div style="padding:10px;margin-bottom: 18px;color: #b94a48;background-color: #f2dede;border: 1px solid #eed3d7; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);-webkit-border-radius: 4px;-moz-border-radius: 4px;border-radius: 4px;">'.$options_lang.'</div>';
 			
@@ -91,7 +91,7 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 			
 		}
 		
-		function WidgetErase(){
+		public static function WidgetErase(){
 			// Hook into 'widget_display_callback' filter
 			// It allows altering a Widget properties right before it outputs in sidebar
 			add_filter('widget_display_callback', function($instance, $widget, $args){
@@ -122,11 +122,11 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 			return true;
 		}
 		
-		function ThirdPartyCookieEraserMenu() {
+		public static function ThirdPartyCookieEraserMenu() {
 			add_options_page('Third Party Cookie Eraser Options', 'Third Party Cookie Eraser', 'manage_options', 'third-party-cookie-eraser', array("AndreaThirdPartyCookieEraser",'ThirdPartyCookieEraserOptions'));
 		}
 		
-		function ThirdPartyCookieEraserOptions() {
+		public static function ThirdPartyCookieEraserOptions() {
 			if (!current_user_can('manage_options'))  {
 				wp_die( __('You do not have sufficient permissions to access this page.') );
 			}
@@ -170,29 +170,35 @@ if (!class_exists("AndreaThirdPartyCookieEraser")) {
 		    // settings form
 		    
 		    ?>
-		
-		<form name="form1" method="post" action="">
-		<input type="hidden" name="<?php echo $hidden_field_name; ?>" value="Y">
-		
-		<?php $options_cookie_name = get_option( 'third_party_cookie_eraser_cookie_name' ); ?>
-		<p><?php _e("Cookie Name:", 'menu-third-party-cookie-eraser' ); ?> 
-		<input type="text" name="third_party_cookie_eraser_cookie_name" value="<?php echo $options_cookie_name; ?>" /> (put the cookie name - IE: viewed_cookie_policy)</p>
-		
-		<?php $options_cookie_value = get_option( 'third_party_cookie_eraser_cookie_value' ); ?>
-		<p><?php _e("Cookie Consent Value:", 'menu-third-party-cookie-eraser' ); ?> 
-		<input type="text" name="third_party_cookie_eraser_cookie_value" value="<?php echo $options_cookie_value; ?>" /> (put the cookie value - IE: yes)</p>
-		
-		<?php $options_lang = get_option( 'third_party_cookie_eraser_lang' ); ?>
-		<p><?php _e("Your message to show:", 'menu-third-party-cookie-eraser' ); ?> 
-		<input type="text" name="third_party_cookie_eraser_lang" value="<?php echo $options_lang; ?>" /> </p>
-
-		<p class="submit">
-		<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes') ?>" />
-		</p>
-		
-		</form>
-		<?php echo "<h2>" . __( 'Put Function in Your Theme', 'menu-google-plus-comments' ) . "</h2>"; ?>
-		</div>
+		<table class="form-table">
+		<tbody>
+			<form name="form1" method="post" action="">
+			<input type="hidden" name="<?php echo $hidden_field_name; ?>" value="Y">
+				<tr>
+				<?php $options_cookie_name = get_option( 'third_party_cookie_eraser_cookie_name' ); ?>
+					<th scope="row"><label for="third_party_cookie_eraser_cookie_name"><?php _e("Cookie Name:", 'menu-third-party-cookie-eraser' ); ?> </label></th>
+					<td><input type="text" name="third_party_cookie_eraser_cookie_name" value="<?php echo $options_cookie_name; ?>"  class="regular-text" /> </p>
+					<p class="description" id="tagline-third_party_cookie_eraser_cookie_name">(put the cookie name - IE: viewed_cookie_policy)</p></td>
+				</tr>
+				<tr>
+					<?php $options_cookie_value = get_option( 'third_party_cookie_eraser_cookie_value' ); ?>
+					<th scope="row"><label for="third_party_cookie_eraser_cookie_value"><?php _e("Cookie Consent Value:", 'menu-third-party-cookie-eraser' ); ?> </label></th>
+					<td><input type="text" name="third_party_cookie_eraser_cookie_value" value="<?php echo $options_cookie_value; ?>"  class="regular-text" />
+					<p class="description" id="tagline-third_party_cookie_eraser_cookie_value">(put the cookie value - IE: yes)</p></td>
+				</tr>
+				<tr>
+					<?php $options_lang = get_option( 'third_party_cookie_eraser_lang' ); ?>
+					<th scope="row"><label for="third_party_cookie_eraser_lang"><?php _e("Your message to show:", 'menu-third-party-cookie-eraser' ); ?> </label></th>
+					<td><input type="text" name="third_party_cookie_eraser_lang" value="<?php echo $options_lang; ?>" class="regular-text" /></td>
+				</tr>
+				<p class="submit">
+					<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes') ?>" />
+				</p>
+			</form>
+		</tbody>
+		</table>
+		<?php echo "<h2>" . __( 'Magari essendo oltre 1000 ci confronteremo anche sulla Cookie Law ;)', 'menu-third-party-cookie-eraser' ) . "</h2>"; ?>
+		<p><a href="https://www.webmarketingfestival.it/?utm_source=CookieLawPlugin&utm_medium=Banner300x200&utm_campaign=CookieEraser" target="_blank"><img src="https://www.webmarketingfestival.it/images/kit-stampa/300x250.gif" alt="Web Marketing Festival"></p>
 		
 		<?php
 
